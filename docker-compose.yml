@@ -1,0 +1,37 @@
+services:
+  dmarc-dashboard:
+    build: .
+    container_name: dmarc-dashboard
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    environment:
+      TZ: Europe/Copenhagen
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      IMAP_ENABLED: "true"
+      IMAP_HOST: ${IMAPHOST}
+      IMAP_PORT: "993"
+      IMAP_SSL: "true"
+      IMAP_USER: ${IMAP_USER}
+      IMAP_PASSWORD: ${IMAP_PASSWORD}
+      IMAP_FOLDER: INBOX
+      IMAP_ARCHIVE_FOLDER: DMARC-Processed
+      IMAP_SEARCH: UNSEEN
+      IMAP_POLL_MINUTES: "15"
+      IMAP_MARK_SEEN: "true"
+    volumes:
+      - dmarc_data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - proxy
+
+volumes:
+  dmarc_data:
+networks:
+  proxy:
+    external: true
